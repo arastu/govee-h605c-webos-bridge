@@ -1,0 +1,11 @@
+{
+  "address": "d7:37:32:32:36:62",
+  "segments": 15,
+  "udpPort": 19446,
+  "colorTolerance": 20,
+  "changeThreshold": 10,
+  "reverse": false,
+  "offset": 0,
+  "brightness": null,
+  "powerOn": true
+}

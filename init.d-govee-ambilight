@@ -1,0 +1,10 @@
+#!/bin/sh
+# Homebrew Channel startup hook: start HyperHDR, PicCap and the Govee bridge after boot
+(
+  sleep 25
+  luna-send -n 1 -w 10000 luna://org.webosbrew.hyperhdr.loader.service/start '{}'
+  sleep 5
+  /media/developer/govee-bridge/run.sh start
+  sleep 5
+  luna-send -n 1 -w 10000 luna://org.webosbrew.piccap.service/start '{}'
+) >/tmp/govee-ambilight-init.log 2>&1 &
