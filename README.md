@@ -26,6 +26,9 @@ root shell or a Node script on the TV.
 
 ## webOS specifics (webOS 4.10, bluetooth2)
 - `gatt/connect` must stay subscribed; the link drops when the caller exits.
+- After a reboot `gatt/connect` fails with error 106 ("Device with supplied address is not
+  available") until the adapter has seen the device in a scan. The bridge runs
+  `adapter/startDiscovery` itself when it gets that error, then retries.
 - The write call takes `appId` (returned by connect), not `address`:
   `{"appId":N,"service":"...1910","characteristic":"...2b11","writeType":"noresponse","value":{"bytes":[...]}}`
 - Node on this TV is v0.12; use `NODE_PATH=/usr/palm/nodejs:/usr/lib/node_modules` and an

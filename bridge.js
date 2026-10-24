@@ -88,9 +88,14 @@ function connect() {
       if (!p.returnValue) {
         log('connect failed: ' + JSON.stringify(p));
         connecting = false;
-        setTimeout(connect, 3000);
+        connectFailures++;
+        // 106 = "Device with supplied address is not available": the BT stack has not seen the
+        // device since boot. Run a discovery so it learns the address, then retry.
+        if (p.errorCode === 106 || connectFailures % 5 === 0) discoverThenConnect();
+        else setTimeout(connect, 3000);
         return;
       }
+      connectFailures = 0;
       appId = p.appId;
       log('connected, appId=' + appId + ', discovering services');
       call('gatt/discoverServices', { address: cfg.address }, function (r) {
@@ -114,6 +119,27 @@ function connect() {
   connReq.addListener('cancel', function (msg) {
     log('connect subscription cancelled');
     onDisconnected('subscription cancelled');
+  });
+}
+
+var connectFailures = 0;
+function discoverThenConnect() {
+  log('running bluetooth discovery to find ' + cfg.address);
+  call('adapter/startDiscovery', {}, function (r) {
+    if (!r.returnValue) log('startDiscovery: ' + JSON.stringify(r));
+    var tries = 0;
+    (function poll() {
+      tries++;
+      call('device/getStatus', {}, function (d) {
+        var found = false;
+        var devs = (d && d.devices) || [];
+        for (var i = 0; i < devs.length; i++) if (devs[i].address === cfg.address) found = true;
+        if (found || tries >= 12) {
+          log(found ? 'device found by discovery' : 'device not found after discovery, will retry');
+          call('adapter/cancelDiscovery', {}, function () { setTimeout(connect, found ? 1000 : 10000); });
+        } else setTimeout(poll, 2500);
+      });
+    })();
   });
 }
 
